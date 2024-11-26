@@ -1,7 +1,6 @@
 unit f_Simulation;
 
 interface
-
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Viewport3D,
@@ -14,21 +13,37 @@ type
     Light: TLight;
     Model3D: TModel3D;
     Sphere: TSphere;
+    Timer: TTimer;
+    procedure TimerTimer(Sender: TObject);
   private
     { Private declarations }
   public
     { Public declarations }
     procedure LoadGCode(GCode: TStringList);
     procedure ParseGCodeToViewport(GCode: TStringList; Viewport: TViewport3D);
+    procedure AnimateTool;
   end;
 
 var
   fSimulation: TfSimulation;
 
 implementation
-
 {$R *.fmx}
 {$R *.Windows.fmx MSWINDOWS}
+
+const
+  Radius = 5.0;  // Radius of the circular path
+  Speed = 0.05;  // Speed of rotation
+
+type
+  TExtrusionMode = (emAbsolute, emRelative);
+
+var
+  AbsolutePositioning: Boolean;
+  ExtrusionMode: TExtrusionMode;
+  ToolBody: TCylinder;  // Representing the cylindrical body of the tool
+  ToolTip: TCone;  // Sharp tip of the tool (cone shape)
+  Angle: Single;  // For the circular motion animation
 
 procedure TfSimulation.LoadGCode(GCode: TStringList);
 begin
@@ -39,19 +54,36 @@ procedure TfSimulation.ParseGCodeToViewport(GCode: TStringList; Viewport: TViewp
 var
   i: Integer;
   Line: string;
-  X, Y, Z: Single;
-  LastX, LastY, LastZ: Single;
-  Cylinder: TCylinder;
+  X, Y, Z, E: Single;
+  LastX, LastY, LastZ, LastE: Single;
   Direction: TPoint3D;
   Distance: Single;
-  RotationAngle: Single;
   RotationVector: TPosition3D;
+  Command: string;
 begin
-  // Initial position
+  // Initial positions for X, Y, Z, and E (extrusion)
   LastX := 0;
   LastY := 0;
   LastZ := 0;
+  LastE := 0;
 
+  // Create the cylindrical tool body
+  ToolBody := TCylinder.Create(Viewport);
+  ToolBody.Parent := Viewport;
+  ToolBody.Width := 2;  // Diameter of the tool body
+  ToolBody.Height := 10;  // Length of the tool body
+  ToolBody.Position.Point := TPoint3D.Create(0, 0, 0);
+  ToolBody.MaterialSource := nil;  // Optional: Apply material for visibility
+
+  // Create the pointed tip of the tool (cone shape)
+  ToolTip := TCone.Create(Viewport);
+  ToolTip.Parent := Viewport;
+  ToolTip.Width := 1;  // Radius of the base of the cone (sharp edge)
+  ToolTip.Height := 2;  // Height of the pointed tip
+  ToolTip.Position.Point := TPoint3D.Create(0, 0, 10);  // Position the tip at the top of the tool body
+  ToolTip.MaterialSource := nil;  // Optionally apply material
+
+  // Simulating G-code parsing (Movement commands could be added later)
   for i := 0 to GCode.Count - 1 do
   begin
     Line := Trim(GCode[i]);
@@ -60,49 +92,41 @@ begin
     if (Line = '') or (Line[1] = ';') then
       Continue;
 
-    // Process G0 or G1 commands
-    if Line.StartsWith('G0') or Line.StartsWith('G1') then
-    begin
-      X := LastX;
-      Y := LastY;
-      Z := LastZ;
+    // Extract the command (e.g., G1, G92, M104)
+    Command := Copy(Line, 1, 3);
 
-      // Extract coordinates from the GCode line
-      if Pos('X', Line) > 0 then
-        X := StrToFloatDef(Copy(Line, Pos('X', Line) + 1, 10), LastX);
-      if Pos('Y', Line) > 0 then
-        Y := StrToFloatDef(Copy(Line, Pos('Y', Line) + 1, 10), LastY);
-      if Pos('Z', Line) > 0 then
-        Z := StrToFloatDef(Copy(Line, Pos('Z', Line) + 1, 10), LastZ);
-
-      // Calculate direction and distance
-      Direction := Point3D(X, Y, Z) - Point3D(LastX, LastY, LastZ);
-      Distance := Direction.Length;
-
-      // Create cylinder (used as a line)
-      Cylinder := TCylinder.Create(Viewport);
-      Cylinder.Parent := Viewport;
-      Cylinder.Height := Distance;
-      Cylinder.Depth := 0.1;  // Minimal thickness to look like a line
-      Cylinder.Width := 0.1;
-      Cylinder.Position.Point := (Point3D(LastX, LastY, LastZ) + Point3D(X, Y, Z)) * 0.5;
-
-      // Calculate the rotation vector
-      RotationVector := TPosition3D.Create(Direction);
-
-      // Apply rotation (around the Z axis as an example)
-      Cylinder.RotationAngle := RotationVector;
-
-      Cylinder.MaterialSource := nil; // Optionally set a color or material here
-
-      // Update last position
-      LastX := X;
-      LastY := Y;
-      LastZ := Z;
-    end;
+    // Handle G0/G1 commands for movement (implement as needed)
   end;
+
+  // Start the animation of the tool's circular movement
+  AnimateTool;
 end;
 
+procedure TfSimulation.TimerTimer(Sender: TObject);
+var
+  RotationPoint: TPoint3D;  // Variable to store the rotation angles
+begin
+  // Increment the angle for rotation
+  Angle := Angle + Speed;
+
+  // Update the position of the tool to follow a circular path
+  ToolBody.Position.Point := TPoint3D.Create(Radius * Cos(Angle), Radius * Sin(Angle), 0);
+  ToolTip.Position.Point := TPoint3D.Create(Radius * Cos(Angle), Radius * Sin(Angle), 10);  // Adjust tool tip height if needed
+
+  // Create a TPoint3D with the rotation angle
+  RotationPoint := TPoint3D.Create(0, Angle * 180 / Pi, 0);  // Rotation around the Y-axis (convert radians to degrees)
+
+  // Apply rotation to make the tool face the camera by setting the Y-axis of RotationAngle
+  ToolBody.RotationAngle := TPosition3D.Create(RotationPoint);  // Create a TPosition3D with the rotation point
+  ToolTip.RotationAngle := TPosition3D.Create(RotationPoint);   // Same rotation for the tool tip
+end;
+
+
+procedure TfSimulation.AnimateTool;
+begin
+  // Use a timer or periodic update function to animate the movement
+  Timer.Enabled := True;  // Assuming you have a Timer component
+end;
 
 end.
 

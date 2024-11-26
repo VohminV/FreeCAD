@@ -40,13 +40,10 @@ object fSimulation: TfSimulation
       Height = 1.000000000000000000
       Depth = 1.000000000000000000
     end
-    object Line: TLine
-      LineType = Diagonal
-      Position.X = 280.000000000000000000
-      Position.Y = 480.000000000000000000
-      Size.Width = 50.000000000000000000
-      Size.Height = 50.000000000000000000
-      Size.PlatformDefault = False
-    end
+  end
+  object Timer: TTimer
+    OnTimer = TimerTimer
+    Left = 24
+    Top = 24
   end
 end

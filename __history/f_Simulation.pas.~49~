@@ -1,0 +1,128 @@
+unit f_Simulation;
+
+interface
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Viewport3D,
+  System.Math.Vectors, FMX.Controls3D, FMX.Types3D, FMX.Objects3D, FMX.Objects;
+
+type
+  TfSimulation = class(TForm)
+    Viewport3D: TViewport3D;
+    Camera: TCamera;
+    Light: TLight;
+    Model3D: TModel3D;
+    Sphere: TSphere;
+    Timer: TTimer;
+    procedure TimerTimer(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    procedure LoadGCode(GCode: TStringList);
+    procedure ParseGCodeToViewport(GCode: TStringList; Viewport: TViewport3D);
+    procedure AnimateTool;
+  end;
+
+var
+  fSimulation: TfSimulation;
+
+implementation
+{$R *.fmx}
+{$R *.Windows.fmx MSWINDOWS}
+
+const
+  Radius = 5.0;  // Radius of the circular path
+  Speed = 0.05;  // Speed of rotation
+
+type
+  TExtrusionMode = (emAbsolute, emRelative);
+
+var
+  AbsolutePositioning: Boolean;
+  ExtrusionMode: TExtrusionMode;
+  ToolBody: TCylinder;  // Representing the cylindrical body of the tool
+  ToolTip: TCone;  // Sharp tip of the tool (cone shape)
+  Angle: Single;  // For the circular motion animation
+
+procedure TfSimulation.LoadGCode(GCode: TStringList);
+begin
+  ParseGCodeToViewport(GCode, Viewport3D);
+end;
+
+procedure TfSimulation.ParseGCodeToViewport(GCode: TStringList; Viewport: TViewport3D);
+var
+  i: Integer;
+  Line: string;
+  X, Y, Z, E: Single;
+  LastX, LastY, LastZ, LastE: Single;
+  Direction: TPoint3D;
+  Distance: Single;
+  RotationVector: TPosition3D;
+  Command: string;
+begin
+  // Initial positions for X, Y, Z, and E (extrusion)
+  LastX := 0;
+  LastY := 0;
+  LastZ := 0;
+  LastE := 0;
+
+  // Create the cylindrical tool body
+  ToolBody := TCylinder.Create(Viewport);
+  ToolBody.Parent := Viewport;
+  ToolBody.Width := 2;  // Diameter of the tool body
+  ToolBody.Height := 10;  // Length of the tool body
+  ToolBody.Position.Point := TPoint3D.Create(0, 0, 0);
+  ToolBody.MaterialSource := nil;  // Optional: Apply material for visibility
+
+  // Create the pointed tip of the tool (cone shape)
+  ToolTip := TCone.Create(Viewport);
+  ToolTip.Parent := Viewport;
+  ToolTip.Width := 1;  // Radius of the base of the cone (sharp edge)
+  ToolTip.Height := 2;  // Height of the pointed tip
+  ToolTip.Position.Point := TPoint3D.Create(0, 0, 10);  // Position the tip at the top of the tool body
+  ToolTip.MaterialSource := nil;  // Optionally apply material
+
+  // Simulating G-code parsing (Movement commands could be added later)
+  for i := 0 to GCode.Count - 1 do
+  begin
+    Line := Trim(GCode[i]);
+
+    // Skip comments and empty lines
+    if (Line = '') or (Line[1] = ';') then
+      Continue;
+
+    // Extract the command (e.g., G1, G92, M104)
+    Command := Copy(Line, 1, 3);
+
+    // Handle G0/G1 commands for movement (implement as needed)
+  end;
+
+  // Start the animation of the tool's circular movement
+  AnimateTool;
+end;
+
+
+
+procedure TfSimulation.TimerTimer(Sender: TObject);
+begin
+   // Rotate the tool around its Y-axis
+  Angle := Angle + Speed;
+
+  // Update the position of the tool to follow a circular path
+  ToolBody.Position.Point := TPoint3D.Create(Radius * Cos(Angle), Radius * Sin(Angle), 0);
+  ToolTip.Position.Point := TPoint3D.Create(Radius * Cos(Angle), Radius * Sin(Angle), 10);  // Adjust tool tip height if needed
+
+  // Apply rotation to make the tool face the camera
+  ToolBody.RotationAngle := Angle * 180 / Pi;  // Convert angle to degrees for rotation
+  ToolTip.RotationAngle := Angle * 180 / Pi;
+end;
+
+procedure TfSimulation.AnimateTool;
+begin
+  // Use a timer or periodic update function to animate the movement
+  Timer.Enabled := True;  // Assuming you have a Timer component
+end;
+
+end.
+

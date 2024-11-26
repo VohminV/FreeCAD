@@ -43,14 +43,17 @@ begin
   try
     // Assign the memo's lines to the TStringList
     GCode.Assign(MemoGCode.Lines);
-
+    // Create the SimulationForm object
+    SimulationForm := TfSimulation.Create(Self);  // Create the form before using it
     // Now you can use GCode as a TStringList (e.g., pass it to LoadGCode)
     SimulationForm.LoadGCode(GCode);
-
+    // Show the form
+    SimulationForm.Show;
   finally
     GCode.Free;
   end;
 end;
+
 
 procedure TfMain.LoadGCodeClick(Sender: TObject);
 var
