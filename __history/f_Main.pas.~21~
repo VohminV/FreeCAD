@@ -1,0 +1,101 @@
+unit f_Main;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.ComCtrls;
+
+type
+  TfMain = class(TForm)
+    Panel1: TPanel;
+    MemoGCode: TMemo;
+    Splitter1: TSplitter;
+    Panel2: TPanel;
+    LoadGCode: TButton;
+    OpenDialogGCode: TOpenDialog;
+    SaveGCode: TButton;
+    ProgressBar: TProgressBar;
+    procedure LoadGCodeClick(Sender: TObject);
+    procedure SaveGCodeClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  fMain: TfMain;
+
+implementation
+
+{$R *.dfm}
+
+procedure TfMain.LoadGCodeClick(Sender: TObject);
+var
+  GCodeFile: TStringList;
+  FilteredGCode: TStringList;
+  i: Integer;
+  Line: string;
+begin
+  OpenDialogGCode.Filter := 'G-Code Files (*.gcode;*.nc)|*.gcode;*.nc|All Files (*.*)|*.*';
+  ProgressBar.Min:=0;
+  if OpenDialogGCode.Execute then
+  begin
+    GCodeFile := TStringList.Create;
+    FilteredGCode := TStringList.Create;
+    try
+      GCodeFile.LoadFromFile(OpenDialogGCode.FileName);
+      ProgressBar.Max:= GCodeFile.Count;
+      for i := 0 to GCodeFile.Count - 1 do
+      begin
+        Line := Trim(GCodeFile[i]);
+
+        // Пропускаем пустые строки и строки с полными комментариями
+        if (Line = '') or (Line[1] = ';') then
+          Continue;
+
+        // Удаляем комментарии (текст после `;`)
+        if Pos(';', Line) > 0 then
+          Line := Trim(Copy(Line, 1, Pos(';', Line) - 1));
+
+        // Сохраняем только очищенные строки
+        if Line <> '' then
+          FilteredGCode.Add(Line);
+      end;
+
+      // Отображаем очищенный G-код
+      MemoGCode.Lines := FilteredGCode;
+
+      ShowMessage('Файл успешно загружен и очищен от комментариев.');
+    except
+      on E: Exception do
+        ShowMessage('Ошибка: ' + E.Message);
+    end;
+    GCodeFile.Free;
+    FilteredGCode.Free;
+  end;
+end;
+
+
+
+procedure TfMain.SaveGCodeClick(Sender: TObject);
+begin
+// Устанавливаем фильтр для сохранения файлов
+  OpenDialogGCode.Filter := 'G-Code Files (*.gcode;*.nc)|*.gcode;*.nc|All Files (*.*)|*.*';
+
+  // Открываем диалог сохранения файла
+  if OpenDialogGCode.Execute then
+  begin
+    try
+      // Сохраняем содержимое MemoGCode в выбранный файл
+      MemoGCode.Lines.SaveToFile(OpenDialogGCode.FileName);
+      ShowMessage('Файл G-кода успешно сохранён в ' + OpenDialogGCode.FileName);
+    except
+      on E: Exception do
+        ShowMessage('Ошибка при сохранении файла: ' + E.Message);
+    end;
+  end;
+end;
+
+end.

@@ -1,0 +1,69 @@
+unit f_Main;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls;
+
+type
+  TfMain = class(TForm)
+    Panel1: TPanel;
+    MemoGCode: TMemo;
+    Splitter1: TSplitter;
+    Panel2: TPanel;
+    LoadGCode: TButton;
+    OpenDialogGCode: TOpenDialog;
+    SaveGCode: TButton;
+    procedure LoadGCodeClick(Sender: TObject);
+    procedure SaveGCodeClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  fMain: TfMain;
+
+implementation
+
+{$R *.dfm}
+
+procedure TfMain.LoadGCodeClick(Sender: TObject);
+begin
+ OpenDialogGCode.Filter := 'G-Code Files (*.gcode;*.nc)|*.gcode;*.nc|All Files (*.*)|*.*';
+
+  if OpenDialogGCode.Execute then
+  begin
+    try
+      // Загрузка содержимого файла в TMemo или другой компонент
+      MemoGCode.Lines.LoadFromFile(OpenDialogGCode.FileName);
+      ShowMessage('Файл G-кода успешно загружен.');
+    except
+      on E: Exception do
+        ShowMessage('Ошибка при загрузке файла: ' + E.Message);
+    end;
+  end;
+end;
+
+procedure TfMain.SaveGCodeClick(Sender: TObject);
+begin
+// Устанавливаем фильтр для сохранения файлов
+  OpenDialogGCode.Filter := 'G-Code Files (*.gcode;*.nc)|*.gcode;*.nc|All Files (*.*)|*.*';
+
+  // Открываем диалог сохранения файла
+  if OpenDialogGCode.Execute then
+  begin
+    try
+      // Сохраняем содержимое MemoGCode в выбранный файл
+      MemoGCode.Lines.SaveToFile(OpenDialogGCode.FileName);
+      ShowMessage('Файл G-кода успешно сохранён в ' + OpenDialogGCode.FileName);
+    except
+      on E: Exception do
+        ShowMessage('Ошибка при сохранении файла: ' + E.Message);
+    end;
+  end;
+end;
+
+end.

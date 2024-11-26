@@ -1,0 +1,14 @@
+program FreeCAD;
+
+uses
+  Vcl.Forms,
+  f_Main in 'f_Main.pas' {Form3};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm3, Form3);
+  Application.Run;
+end.
