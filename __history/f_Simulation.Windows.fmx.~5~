@@ -1,0 +1,10 @@
+inherited fSimulation: TfSimulation
+  Caption = #1069#1084#1091#1083#1103#1094#1080#1103
+  ClientHeight = 772
+  ClientWidth = 1083
+  DesignerMasterStyle = 0
+  inherited Viewport3D1: TViewport3D
+    Size.Width = 1083.000000000000000000
+    Size.Height = 772.000000000000000000
+  end
+end

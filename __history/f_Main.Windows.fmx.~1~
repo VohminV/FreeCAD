@@ -1,0 +1,4 @@
+inherited Form3_Windows: TForm3_Windows
+  Caption = 'FreeCAD'
+  DesignerMasterStyle = 0
+end

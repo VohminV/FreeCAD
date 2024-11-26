@@ -1,0 +1,63 @@
+object Form3: TForm3
+  Left = 0
+  Top = 0
+  Caption = 'Form3'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object ProgressBar: TProgressBar
+    Align = Bottom
+    Orientation = Horizontal
+    Position.Y = 460.000000000000000000
+    Size.Width = 640.000000000000000000
+    Size.Height = 20.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object MemoGCode: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Align = Left
+    Size.Width = 305.000000000000000000
+    Size.Height = 460.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Viewport.Width = 301.000000000000000000
+    Viewport.Height = 456.000000000000000000
+  end
+  object Panel1: TPanel
+    Align = Client
+    Size.Width = 335.000000000000000000
+    Size.Height = 460.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    object SaveGCode: TButton
+      Hint = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1074' '#1092#1072#1081#1083' *.gcode | *.nc'
+      Position.X = 32.000000000000000000
+      Position.Y = 96.000000000000000000
+      Size.Width = 281.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1074' '#1092#1072#1081#1083
+      OnClick = SaveGCodeClick
+    end
+    object LoadGCode: TButton
+      Hint = #1047#1072#1075#1088#1091#1079#1080#1090#1100' '#1092#1072#1081#1083' *.gcode | *.nc'
+      Position.X = 32.000000000000000000
+      Position.Y = 40.000000000000000000
+      Size.Width = 281.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = #1047#1072#1075#1088#1091#1079#1080#1090#1100' '#1092#1072#1081#1083' '
+      OnClick = LoadGCodeClick
+    end
+  end
+  object OpenDialogGCode: TOpenDialog
+    Left = 224
+    Top = 240
+  end
+end

@@ -1,0 +1,3 @@
+inherited fSimulation: TfSimulation
+  DesignerMasterStyle = 0
+end

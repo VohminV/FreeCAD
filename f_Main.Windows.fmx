@@ -1,0 +1,12 @@
+inherited fMain_Windows: TfMain_Windows
+  Caption = 'FreeCAD'
+  DesignerMasterStyle = 0
+  inherited MemoGCode: TMemo
+    Viewport.Width = 305.000000000000000000
+    Viewport.Height = 460.000000000000000000
+  end
+  inherited OpenDialogGCode: TOpenDialog [3]
+  end
+  inherited btnOpenSimulation: TButton [4]
+  end
+end

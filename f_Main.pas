@@ -3,21 +3,23 @@ unit f_Main;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.ComCtrls;
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
+  FMX.Controls.Presentation, FMX.StdCtrls, FMX.Memo.Types, FMX.ScrollBox,
+  FMX.Memo, f_Simulation;
 
 type
   TfMain = class(TForm)
-    Panel1: TPanel;
+    ProgressBar: TProgressBar;
     MemoGCode: TMemo;
-    Splitter1: TSplitter;
-    Panel2: TPanel;
+    Panel1: TPanel;
+    SaveGCode: TButton;
     LoadGCode: TButton;
     OpenDialogGCode: TOpenDialog;
-    SaveGCode: TButton;
-    ProgressBar: TProgressBar;
+    btnOpenSimulation: TButton;
     procedure LoadGCodeClick(Sender: TObject);
     procedure SaveGCodeClick(Sender: TObject);
+    procedure btnOpenSimulationClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -29,7 +31,26 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.fmx}
+{$R *.Windows.fmx MSWINDOWS}
+
+procedure TfMain.btnOpenSimulationClick(Sender: TObject);
+var
+  SimulationForm: TfSimulation;
+  GCode: TStringList;
+begin
+  GCode := TStringList.Create;
+  try
+    // Assign the memo's lines to the TStringList
+    GCode.Assign(MemoGCode.Lines);
+
+    // Now you can use GCode as a TStringList (e.g., pass it to LoadGCode)
+    SimulationForm.LoadGCode(GCode);
+
+  finally
+    GCode.Free;
+  end;
+end;
 
 procedure TfMain.LoadGCodeClick(Sender: TObject);
 var
@@ -50,26 +71,21 @@ begin
       for i := 0 to GCodeFile.Count - 1 do
       begin
         Line := Trim(GCodeFile[i]);
-
         // Пропускаем пустые строки и строки с полными комментариями
         if (Line = '') or (Line[1] = ';') then
           Continue;
-
         // Удаляем комментарии (текст после `;`)
         if Pos(';', Line) > 0 then
           Line := Trim(Copy(Line, 1, Pos(';', Line) - 1));
-
         // Сохраняем только очищенные строки
         if Line <> '' then
           FilteredGCode.Add(Line);
-        ProgressBar.Position:= ProgressBar.Position+1;
+        ProgressBar.Value:= ProgressBar.Value+1;
       end;
-
       // Отображаем очищенный G-код
       MemoGCode.Lines := FilteredGCode;
-
       ShowMessage('Файл успешно загружен и очищен от комментариев.');
-      ProgressBar.Position:=0;
+      ProgressBar.Value:=0;
     except
       on E: Exception do
         ShowMessage('Ошибка: ' + E.Message);
@@ -79,18 +95,13 @@ begin
   end;
 end;
 
-
-
 procedure TfMain.SaveGCodeClick(Sender: TObject);
 begin
-// Устанавливаем фильтр для сохранения файлов
   OpenDialogGCode.Filter := 'G-Code Files (*.gcode;*.nc)|*.gcode;*.nc|All Files (*.*)|*.*';
 
-  // Открываем диалог сохранения файла
   if OpenDialogGCode.Execute then
   begin
     try
-      // Сохраняем содержимое MemoGCode в выбранный файл
       MemoGCode.Lines.SaveToFile(OpenDialogGCode.FileName);
       ShowMessage('Файл G-кода успешно сохранён в ' + OpenDialogGCode.FileName);
     except

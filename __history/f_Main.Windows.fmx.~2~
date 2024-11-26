@@ -1,0 +1,4 @@
+inherited fMain: TfMain
+  Caption = 'FreeCAD'
+  DesignerMasterStyle = 0
+end
